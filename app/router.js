@@ -21,18 +21,21 @@ function Router(routesFn) {
  * Capture routes as object that can be passed to Director.
  */
 Router.prototype.parseRoutes = function(routesFn) {
-  var routes = {};
+  var routes = {}
+    , capture;
 
-  routesFn(function(pattern, handler) {
-    // Server routes are an object, not a function. We just use `get`.
-    if (isServer) {
+  // Server routes are an object, not a function. We just use `get`.
+  capture = isServer
+    ? function(pattern, handler) {
       routes[pattern] = {
         get: this.getRouteHandler(handler)
       };
-    } else {
-      routes[pattern] = this.getRouteHandler(handler);
     }
-  }.bind(this));
+    : function(pattern, handler) {
+      routes[pattern] = this.getRouteHandler(handler);
+    };
+
+  routesFn(capture.bind(this));
 
   return routes;
 };
