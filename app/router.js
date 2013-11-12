@@ -4,6 +4,13 @@ var director = require('director')
   , viewsDir = (isServer ? __dirname : 'app') + '/views'
   , DirectorRouter = isServer ? director.http.Router : director.Router
   , firstRender = true
+  , doRoute = isServer
+    ? function(router, html, routeContext) {
+        router.handleServerRoute(html, routeContext.req, routeContext.res);
+    }
+    : function(router, html) {
+        router.handleClientRoute(html);
+    }
 ;
 
 // Register Handlebars Helpers
@@ -67,11 +74,7 @@ Router.prototype.getRouteHandler = function(handler) {
         router.renderView(viewPath, data, function(err, html) {
           if (err) return handleErr(err);
 
-          if (isServer) {
-            router.handleServerRoute(html, routeContext.req, routeContext.res);
-          } else {
-            router.handleClientRoute(html);
-          }
+          doRoute(router, html, routeContext);
         });
       }));
     }
